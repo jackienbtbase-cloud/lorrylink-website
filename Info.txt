@@ -1,0 +1,10 @@
+-- Replace the UUID with the actual transporter's ID
+SELECT public.issue_strike('123e4567-e89b-12d3-a456-426614174000');
+
+
+-- Replace with the transporter's ID to instantly lift their ban
+UPDATE public.transporters
+SET 
+    banned_until = NULL, 
+    status = 'active'
+WHERE id = '123e4567-e89b-12d3-a456-426614174000';

@@ -1,0 +1,17 @@
+/* Ensure the body takes full height and prevents unwanted scrolling outside main */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overscroll-behavior-y: none;
+}
+
+/* Safe area paddings for modern mobile phones with notches/home bars */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Smooth transitions for UI states */
+.hidden {
+    display: none !important;
+}

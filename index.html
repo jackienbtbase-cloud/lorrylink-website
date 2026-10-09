@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBT LorryLink</title>
+    
+    <!-- NEW: Add this line to link your custom favicon -->
+    <link rel="icon" type="image/png" href="NBT.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased font-sans flex flex-col h-screen overflow-hidden">
+
+    <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center z-10">
+        <h1 class="text-xl font-bold flex items-center gap-2">
+            <i class="ri-truck-line"></i> NBT LorryLink
+        </h1>
+        <button id="logout-btn" class="hidden text-sm bg-blue-700 px-3 py-1 rounded">Logout</button>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 pb-24" id="main-content">
+        <!-- VIEW: LOGIN -->
+        <div id="view-login" class="flex flex-col items-center justify-center h-full gap-4">
+            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-center">
+                <i class="ri-route-line text-5xl text-blue-600 mb-4 inline-block"></i>
+                <h2 class="text-2xl font-bold mb-6">NBT LorryLink</h2>
+                
+                <form id="login-form" class="flex flex-col gap-3 text-left">
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Email Address</label>
+                        <input type="email" id="login-email" class="w-full border border-gray-300 rounded p-2 mt-1 text-sm" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Password</label>
+                        <input type="password" id="login-password" class="w-full border border-gray-300 rounded p-2 mt-1 text-sm" required>
+                    </div>
+					<div class="text-right">
+                        <button type="button" onclick="app.showView('forgotPassword')" class="text-xs text-blue-600 font-bold hover:underline">Forgot Password?</button>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 mt-2">Log In</button>
+                </form>
+                
+                <p class="text-sm text-gray-500 mt-4">New Transporter? <button onclick="app.showView('register')" class="text-blue-600 font-bold underline">Register Here</button></p>
+            </div>
+        </div>
+
+        <!-- VIEW: REGISTER TRANSPORTER -->
+        <div id="view-register" class="hidden flex-col items-center justify-center h-full gap-4">
+            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-left">
+                <h2 class="text-xl font-bold mb-4 text-center">Transporter Registration</h2>
+                
+                <form id="register-form" class="flex flex-col gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Company Name</label>
+                        <input type="text" id="reg-company" class="w-full border border-gray-300 rounded p-2 text-sm" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Contact Person</label>
+                        <input type="text" id="reg-contact" class="w-full border border-gray-300 rounded p-2 text-sm" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Phone Number</label>
+                        <input type="tel" id="reg-phone" class="w-full border border-gray-300 rounded p-2 text-sm" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Email Address</label>
+                        <input type="email" id="reg-email" class="w-full border border-gray-300 rounded p-2 text-sm" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Password</label>
+                        <input type="password" id="reg-password" class="w-full border border-gray-300 rounded p-2 text-sm" required minlength="6">
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-green-700 mt-2">Create Account</button>
+                </form>
+                
+                <p class="text-sm text-gray-500 mt-4 text-center"><button onclick="app.showView('login')" class="text-blue-600 font-bold underline">Back to Login</button></p>
+            </div>
+        </div>
+		
+		<!-- VIEW: FORGOT PASSWORD -->
+        <div id="view-forgot-password" class="hidden flex-col items-center justify-center h-full gap-4">
+            <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-sm text-left">
+                <h2 class="text-xl font-bold mb-2 text-center">Reset Password</h2>
+                <p class="text-xs text-gray-500 mb-4 text-center">Enter your email address and we will send you a link to reset your password.</p>
+                
+                <form id="forgot-password-form" class="flex flex-col gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Email Address</label>
+                        <input type="email" id="forgot-email" class="w-full border border-gray-300 rounded p-2 mt-1 text-sm" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 mt-2">Send Reset Link</button>
+                </form>
+                
+                <p class="text-sm text-gray-500 mt-4 text-center"><button onclick="app.showView('login')" class="text-blue-600 font-bold underline">Back to Login</button></p>
+            </div>
+        </div>
+
+        <!-- VIEW: NBT DASHBOARD -->
+        <div id="view-nbt-home" class="hidden flex-col gap-4">
+            <div class="flex justify-between items-end">
+                <h2 class="text-xl font-bold text-gray-700">Active Jobs</h2>
+                <button onclick="app.showView('nbtPostJob')" class="bg-blue-600 text-white px-3 py-1.5 rounded text-sm shadow">+ Post Job</button>
+            </div>
+            <!-- Container for dynamic NBT jobs -->
+            <div id="nbt-jobs-container" class="flex flex-col gap-4"></div>
+        </div>
+		<!-- VIEW: NBT POST JOB -->
+        <div id="view-nbt-post-job" class="hidden flex-col gap-4">
+            <div class="flex items-center gap-3 mb-2">
+                <button onclick="app.showView('nbtHome')" class="text-gray-500 text-2xl"><i class="ri-arrow-left-line"></i></button>
+                <h2 class="text-xl font-bold text-gray-700">Post New Job</h2>
+            </div>
+            
+            <form id="post-job-form" class="bg-white p-4 rounded-lg shadow flex flex-col gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-gray-600">PO Number (Internal Only)</label>
+                    <input type="text" id="job-po-number" placeholder="e.g. PO-45992" class="border border-gray-300 rounded p-2 text-sm bg-blue-50" required>
+                </div>
+				<div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-gray-600">Source Location</label>
+                    <input type="text" id="job-source" placeholder="e.g. Petaling Jaya, SEL" class="border border-gray-300 rounded p-2 text-sm" required>
+                </div>
+				
+				<div class="flex flex-col gap-1">
+					<label class="text-xs font-bold text-gray-600">Source Maps Link (Optional)</label>
+					<input type="url" id="job-source-link" placeholder="e.g. https://maps.app.goo.gl/..." class="border border-gray-300 rounded p-2 text-sm">
+				</div>
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-gray-600">Destination Location</label>
+                    <input type="text" id="job-dest" placeholder="e.g. Johor Bahru, JHR" class="border border-gray-300 rounded p-2 text-sm" required>
+                </div>
+				
+                <!-- NEW: Google Maps Link Field -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-gray-600">Destination Maps Link (Optional)</label>
+                    <input type="url" id="job-dest-link" placeholder="e.g. https://maps.app.goo.gl/..." class="border border-gray-300 rounded p-2 text-sm">
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="flex flex-col gap-1 flex-1">
+                        <label class="text-xs font-bold text-gray-600">Item</label>
+                        <select id="job-item" class="border border-gray-300 rounded p-2 text-sm" required>
+                            <option value="Jumbo Bags">Jumbo Bags</option>
+                            <option value="Drums">Drums</option>
+                            <option value="Pallets">Pallets</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col gap-1 w-24">
+                        <label class="text-xs font-bold text-gray-600">Qty</label>
+                        <input type="number" id="job-qty" class="border border-gray-300 rounded p-2 text-sm" required>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="flex flex-col gap-1 flex-1">
+                        <label class="text-xs font-bold text-gray-600">Delivery Date</label>
+                        <input type="date" id="job-date" class="border border-gray-300 rounded p-2 text-sm" required>
+                    </div>
+                    <div class="flex flex-col gap-1 flex-1">
+                        <label class="text-xs font-bold text-gray-600">Price (RM)</label>
+                        <input type="number" id="job-price" placeholder="850" class="border border-gray-300 rounded p-2 text-sm" required>
+                        
+                        <!-- NEW: Hint Link -->
+                        <a href="https://funny-klepon-69696a.netlify.app/" target="_blank" class="text-[10px] text-blue-600 hover:underline font-semibold flex items-center gap-1 mt-0.5">
+                            <i class="ri-links-line"></i> Price Guide
+                        </a>
+                    </div>
+                </div>
+				
+				<div class="flex gap-4">
+                    <div class="flex flex-col gap-1 flex-1">
+                        <label class="text-xs font-bold text-gray-600">Photo 1 (Optional)</label>
+                        <input type="file" id="job-photo-1" accept="image/*" class="border border-gray-300 rounded p-1 text-xs bg-white w-full">
+                    </div>
+                    <div class="flex flex-col gap-1 flex-1">
+                        <label class="text-xs font-bold text-gray-600">Photo 2 (Optional)</label>
+                        <input type="file" id="job-photo-2" accept="image/*" class="border border-gray-300 rounded p-1 text-xs bg-white w-full">
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-gray-600">Remarks (Optional)</label>
+                    <input type="text" id="job-remarks" placeholder="e.g. Handle with care" class="border border-gray-300 rounded p-2 text-sm">
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 mt-2">Publish Job</button>
+            </form>
+        </div>
+		<!-- VIEW: NBT REVIEW BIDS -->
+        <div id="view-nbt-review-bids" class="hidden flex-col gap-4">
+            <div class="flex items-center gap-3 mb-4">
+                <button onclick="app.showView('nbtHome')" class="text-gray-500 text-2xl"><i class="ri-arrow-left-line"></i></button>
+                <h2 class="text-xl font-bold text-gray-700">Review Bids</h2>
+            </div>
+            
+            <!-- We will inject the bids here -->
+            <div id="bids-container" class="flex flex-col gap-3">
+                <p class="text-sm text-gray-500">Loading bids...</p>
+            </div>
+        </div>
+        <!-- VIEW: TRANSPORTER DASHBOARD -->
+        <div id="view-transporter-home" class="hidden flex-col gap-4">
+            <h2 class="text-xl font-bold text-gray-700">Open Job Board</h2>
+            <!-- Container for dynamic Transporter jobs -->
+            <div id="transporter-jobs-container" class="flex flex-col gap-4"></div>
+            
+            <!-- ADD THIS NEW BLOCK BELOW IT -->
+            <div class="mt-6 border-t border-gray-200 pt-4 pb-2">
+                <h3 class="text-base font-bold text-gray-400 mb-3 flex items-center gap-2">
+                    <i class="ri-history-line"></i> Recent Market Activity
+                </h3>
+                <div id="recent-activity-container" class="flex flex-col gap-3"></div>
+            </div>
+            <!-- END NEW BLOCK -->
+        </div>
+		<!-- VIEW: TRANSPORTER MY JOBS -->
+        <div id="view-transporter-my-jobs" class="hidden flex-col gap-4">
+            <h2 class="text-xl font-bold text-gray-700">My Assigned Jobs</h2>
+            <!-- Container for dynamic assigned jobs -->
+            <div id="my-jobs-container" class="flex flex-col gap-4"></div>
+        </div>
+		<!-- VIEW: COUNTER OFFER -->
+        <div id="view-counter-offer" class="hidden flex-col gap-4">
+            <div class="flex items-center gap-3 mb-4">
+                <button onclick="app.showView('transporterHome')" class="text-gray-500 text-2xl"><i class="ri-arrow-left-line"></i></button>
+                <h2 class="text-xl font-bold text-gray-700">Submit Counter-Offer</h2>
+            </div>
+            
+            <form id="counter-offer-form" class="bg-white p-4 rounded-lg shadow flex flex-col gap-4">
+                <input type="hidden" id="counter-job-id">
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-bold text-gray-600">Proposed Price (RM)</label>
+                    <input type="number" id="counter-price" class="border border-gray-300 rounded p-2 text-sm" required>
+                </div>
+
+                <!-- NEW: Proposed Date Field -->
+                <div class="flex flex-col gap-1 border-t border-gray-100 pt-3 mt-1">
+                    <label class="text-xs font-bold text-gray-600">Proposed Delivery Date</label>
+                    <input type="date" id="counter-date" class="border border-gray-300 rounded p-2 text-sm" required>
+                    <p class="text-[10px] text-orange-600 font-semibold mt-1"><i class="ri-information-line"></i> Date must be within 3 days of original schedule.</p>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 mt-2">Submit Bid</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav id="bottom-nav" class="hidden fixed bottom-0 w-full bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.05)] pb-safe">
+        <ul id="nav-nbt" class="hidden flex justify-around p-2">
+            <li class="flex-1 text-center text-blue-600 flex flex-col items-center cursor-pointer">
+                <i class="ri-list-check text-2xl"></i><span class="text-[10px] font-semibold mt-1">Jobs</span>
+            </li>
+        </ul>
+        <ul id="nav-transporter" class="hidden flex justify-around p-2">
+            <li onclick="app.showTransporterBoard()" class="flex-1 text-center text-green-600 flex flex-col items-center cursor-pointer hover:bg-gray-50 rounded py-1">
+                <i class="ri-search-eye-line text-2xl"></i><span class="text-[10px] font-semibold mt-1">Job Board</span>
+            </li>
+            <li onclick="app.showMyJobs()" class="flex-1 text-center text-blue-600 flex flex-col items-center cursor-pointer hover:bg-gray-50 rounded py-1 border-l border-gray-200">
+                <i class="ri-truck-line text-2xl"></i><span class="text-[10px] font-semibold mt-1">My Jobs</span>
+            </li>
+        </ul>
+    </nav>
+
+    <script src="app.js"></script>
+</body>
+</html>
