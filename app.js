@@ -501,10 +501,10 @@ const app = {
         const container = document.getElementById('bids-container');
         container.innerHTML = '<p class="text-sm text-gray-500">Loading bids...</p>';
 
-        // 1. Fetch the original job to get the NBT offered price, date, locations, items, AND po_number
-const { data: job, error: jobError } = await supabaseClient
+        // 1. Fetch the original job (确保 select 里面有 remarks)
+        const { data: job, error: jobError } = await supabaseClient
             .from('jobs')
-            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url, source_maps_link, dest_maps_link')
+            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url, source_maps_link, dest_maps_link, remarks')
             .eq('id', jobId)
             .single();
 
@@ -533,17 +533,17 @@ const { data: job, error: jobError } = await supabaseClient
         const quantity = job.quantity;
         const itemDesc = job.item_desc;
         const poNumber = job.po_number || 'N/A'; 
-        const remarks = job.remarks || 'None';
-		
+        const remarks = job.remarks || 'None'; // <-- 确保这里拿到了 remarks
+        
         let html = `
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 flex flex-col gap-2 shadow-sm">
                 <div class="flex justify-between items-start border-b border-blue-200 pb-2">
                     <div class="flex items-center flex-wrap gap-1 font-bold text-sm">
                         <span>${sourceLoc}</span>
-                        ${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
+                        ${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="查看出发地"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
                         <i class="ri-arrow-right-line text-blue-400 mx-1"></i> 
                         <span>${destLoc}</span>
-                        ${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
+                        ${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="查看目的地"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
                     </div>
                     <span class="text-[10px] font-bold bg-blue-200 text-blue-900 px-2 py-0.5 rounded shadow-sm">PO: ${poNumber}</span>
                 </div>
@@ -560,6 +560,13 @@ const { data: job, error: jobError } = await supabaseClient
                     <span>Items:</span>
                     <span><i class="ri-box-3-line"></i> ${quantity} ${itemDesc}</span>
                 </div>
+                
+                <!-- 新增：显示 Remarks -->
+                <div class="flex justify-between text-xs font-semibold opacity-80 mt-0.5">
+                    <span>Remarks:</span>
+                    <span class="text-right max-w-[70%] break-words"><i class="ri-sticky-note-line"></i> ${remarks}</span>
+                </div>
+
                 ${(job.photo_1_url || job.photo_2_url) ? `
                     <div class="flex gap-2 mt-2 pt-2 border-t border-blue-200/50">
                         ${job.photo_1_url ? `<a href="${job.photo_1_url}" target="_blank" class="block h-12 w-12 overflow-hidden rounded border border-blue-200 shadow-sm hover:opacity-80"><img src="${job.photo_1_url}" class="h-full w-full object-cover"></a>` : ''}
@@ -569,18 +576,18 @@ const { data: job, error: jobError } = await supabaseClient
             </div>
         `;
 
-        // 3. 如果没人竞标，显示详情卡片 + 无人竞标的提示，然后停止
+        // 如果没人竞标，显示详情卡片 + 提示语后直接结束
         if (bids.length === 0) {
             html += '<p class="text-gray-500 text-sm mt-4 text-center">No bids have been submitted for this job yet.</p>';
             container.innerHTML = html;
             return;
         }
 
-        // --- 如果有人竞标，继续处理竞标列表 ---
+        // --- 有竞标数据时的渲染逻辑 ---
         bids.sort((a, b) => {
             if (a.status === 'accepted' && b.status !== 'accepted') return -1;
             if (b.status === 'accepted' && a.status !== 'accepted') return 1;
-            return 0;
+            return 0; 
         });
         
         const transporterIds = bids.map(bid => bid.transporter_id);
