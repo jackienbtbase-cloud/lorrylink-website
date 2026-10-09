@@ -502,9 +502,9 @@ const app = {
         container.innerHTML = '<p class="text-sm text-gray-500">Loading bids...</p>';
 
         // 1. Fetch the original job to get the NBT offered price, date, locations, items, AND po_number
-        const { data: job, error: jobError } = await supabaseClient
+const { data: job, error: jobError } = await supabaseClient
             .from('jobs')
-            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url')
+            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url, source_maps_link, dest_maps_link')
             .eq('id', jobId)
             .single();
 
@@ -525,52 +525,24 @@ const app = {
             return;
         }
 
-        if (bids.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-sm">No bids have been submitted for this job yet.</p>';
-            return;
-        }
-		
-		// Sort the array to ensure the accepted bid is always at the top
-        bids.sort((a, b) => {
-            if (a.status === 'accepted' && b.status !== 'accepted') return -1;
-            if (b.status === 'accepted' && a.status !== 'accepted') return 1;
-            return 0; // Maintain existing date order for all other bids
-        });
-		
-        // 3. Extract the transporter IDs from the bids to fetch their profiles
-        const transporterIds = bids.map(bid => bid.transporter_id);
-        
-        const { data: transporters, error: transError } = await supabaseClient
-            .from('transporters')
-            .select('id, company_name, contact_person, phone')
-            .in('id', transporterIds);
-
-        // Create a lookup dictionary for easy matching
-        const transporterProfiles = {};
-        if (transporters) {
-            transporters.forEach(t => {
-                transporterProfiles[t.id] = t;
-            });
-        }
-
+        // --- 核心修改：不管有没有 bid，先生成任务详情的 Banner ---
         const originalPrice = job.offered_price;
         const originalDate = job.delivery_date; 
         const sourceLoc = job.source_loc;
         const destLoc = job.dest_loc;
         const quantity = job.quantity;
         const itemDesc = job.item_desc;
-        const poNumber = job.po_number || 'N/A'; // <-- NEW
-
-        // 4. Render the bids with the price comparison
-        // Add a banner at the top showing the original route, budget, date, items, AND PO Number
+        const poNumber = job.po_number || 'N/A'; 
+        
         let html = `
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 flex flex-col gap-2 shadow-sm">
-                <!-- UPDATED: Flex container to put Route on left, PO badge on right -->
                 <div class="flex justify-between items-start border-b border-blue-200 pb-2">
-                    <div class="flex items-center gap-2 font-bold text-sm">
-                        <span>${sourceLoc}</span> 
-                        <i class="ri-arrow-right-line text-blue-400"></i> 
+                    <div class="flex items-center flex-wrap gap-1 font-bold text-sm">
+                        <span>${sourceLoc}</span>
+                        ${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
+                        <i class="ri-arrow-right-line text-blue-400 mx-1"></i> 
                         <span>${destLoc}</span>
+                        ${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
                     </div>
                     <span class="text-[10px] font-bold bg-blue-200 text-blue-900 px-2 py-0.5 rounded shadow-sm">PO: ${poNumber}</span>
                 </div>
@@ -587,7 +559,7 @@ const app = {
                     <span>Items:</span>
                     <span><i class="ri-box-3-line"></i> ${quantity} ${itemDesc}</span>
                 </div>
-				${(job.photo_1_url || job.photo_2_url) ? `
+                ${(job.photo_1_url || job.photo_2_url) ? `
                     <div class="flex gap-2 mt-2 pt-2 border-t border-blue-200/50">
                         ${job.photo_1_url ? `<a href="${job.photo_1_url}" target="_blank" class="block h-12 w-12 overflow-hidden rounded border border-blue-200 shadow-sm hover:opacity-80"><img src="${job.photo_1_url}" class="h-full w-full object-cover"></a>` : ''}
                         ${job.photo_2_url ? `<a href="${job.photo_2_url}" target="_blank" class="block h-12 w-12 overflow-hidden rounded border border-blue-200 shadow-sm hover:opacity-80"><img src="${job.photo_2_url}" class="h-full w-full object-cover"></a>` : ''}
@@ -596,32 +568,49 @@ const app = {
             </div>
         `;
 
+        // 3. 如果没人竞标，显示详情卡片 + 无人竞标的提示，然后停止
+        if (bids.length === 0) {
+            html += '<p class="text-gray-500 text-sm mt-4 text-center">No bids have been submitted for this job yet.</p>';
+            container.innerHTML = html;
+            return;
+        }
+
+        // --- 如果有人竞标，继续处理竞标列表 ---
+        bids.sort((a, b) => {
+            if (a.status === 'accepted' && b.status !== 'accepted') return -1;
+            if (b.status === 'accepted' && a.status !== 'accepted') return 1;
+            return 0;
+        });
+        
+        const transporterIds = bids.map(bid => bid.transporter_id);
+        const { data: transporters, error: transError } = await supabaseClient
+            .from('transporters')
+            .select('id, company_name, contact_person, phone')
+            .in('id', transporterIds);
+
+        const transporterProfiles = {};
+        if (transporters) {
+            transporters.forEach(t => {
+                transporterProfiles[t.id] = t;
+            });
+        }
+
         html += bids.map(bid => {
-            // Match the profile or provide a fallback if missing
             const profile = transporterProfiles[bid.transporter_id] || { 
-                company_name: 'Unknown Transporter', 
-                contact_person: 'N/A', 
-                phone: 'N/A' 
+                company_name: 'Unknown Transporter', contact_person: 'N/A', phone: 'N/A' 
             };
 
-            // Format the bid submission date and time
             let submittedAt = 'Unknown time';
             if (bid.created_at) {
                 const dateObj = new Date(bid.created_at);
                 submittedAt = dateObj.toLocaleString('en-MY', { 
-                    day: '2-digit', 
-                    month: 'short', 
-                    year: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    hour12: true 
+                    day: '2-digit', month: 'short', year: 'numeric', 
+                    hour: '2-digit', minute: '2-digit', hour12: true 
                 });
             }
 
-            // Calculate difference and create a visual badge
             const difference = bid.proposed_price - originalPrice;
             let diffBadge = '';
-            
             if (difference === 0) {
                 diffBadge = `<span class="text-[10px] font-bold px-2 py-0.5 bg-gray-100 text-gray-600 rounded">Match</span>`;
             } else if (difference < 0) {
@@ -630,7 +619,6 @@ const app = {
                 diffBadge = `<span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded">▲ RM ${difference} (Higher)</span>`;
             }
 
-            // Check if the transporter proposed a different date
             let dateAlert = '';
             if (bid.proposed_date && bid.proposed_date !== job.delivery_date) {
                 dateAlert = `
@@ -663,7 +651,7 @@ const app = {
                     <div class="mt-2 flex justify-between items-center border-t border-gray-100 pt-3">
                         <span class="text-[10px] text-gray-400 font-medium"><i class="ri-time-line"></i> ${submittedAt}</span>
                         ${bid.status === 'submitted' ? 
-                            `<button onclick="app.awardJob('${bid.id}', '${jobId}', ${bid.proposed_price})" class="bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded shadow hover:bg-green-700">Award Job</button>` 
+                            `<button onclick="app.awardJob('${bid.id}', '${jobId}',${bid.proposed_price})" class="bg-green-600 text-white text-sm font-semibold px-5 py-2 rounded shadow hover:bg-green-700">Award Job</button>` 
                             : 
                             `<span class="text-xs font-bold uppercase px-3 py-1 bg-green-100 text-green-700 rounded">${bid.status}</span>`
                         }
@@ -674,7 +662,6 @@ const app = {
         
         container.innerHTML = html;
     },
-
     async awardJob(bidId, jobId, acceptedPrice) {
         if (!confirm("Are you sure you want to award the job to this transporter?")) return;
 
@@ -796,7 +783,11 @@ const app = {
                         <span class="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded uppercase flex items-center gap-1"><i class="ri-truck-fill"></i> Assigned</span>
                     </div>
                     <div class="flex flex-col gap-1 text-sm mb-3">
-                        <p class="font-bold text-gray-800 text-base">${job.source_loc} <i class="ri-arrow-right-line text-blue-400"></i> ${job.dest_loc}</p>
+                        <p class="font-bold text-gray-800 text-base flex items-center flex-wrap gap-1">
+						    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看出发地"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
+						    <i class="ri-arrow-right-line text-blue-400 mx-1"></i> 
+						    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看目的地"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
+						</p>
                     </div>
 					${(job.photo_1_url || job.photo_2_url) ? `
                     <div class="flex gap-2 mb-3">
@@ -833,7 +824,11 @@ const app = {
                 <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <h3 class="font-bold text-gray-800">${job.source_loc} <i class="ri-arrow-right-line text-blue-500"></i> ${job.dest_loc}</h3>
+                           <h3 class="font-bold text-gray-800 flex items-center flex-wrap gap-1">
+							    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看出发地"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
+							    <i class="ri-arrow-right-line text-blue-500 mx-1"></i> 
+							    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看目的地"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
+							</h3>
                             <!-- NEW: Added PO Number -->
                             <p class="text-xs font-bold text-blue-700 mt-1"><i class="ri-file-list-3-line"></i> PO: ${job.po_number || 'N/A'}</p>
                             
