@@ -533,7 +533,8 @@ const { data: job, error: jobError } = await supabaseClient
         const quantity = job.quantity;
         const itemDesc = job.item_desc;
         const poNumber = job.po_number || 'N/A'; 
-        
+        const remarks = job.remarks || 'None';
+		
         let html = `
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 flex flex-col gap-2 shadow-sm">
                 <div class="flex justify-between items-start border-b border-blue-200 pb-2">
