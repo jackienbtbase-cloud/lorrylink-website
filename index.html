@@ -149,6 +149,7 @@
                             <option value="Jumbo Bags">Jumbo Bags</option>
                             <option value="Drums">Drums</option>
                             <option value="Pallets">Pallets</option>
+							<option value="Pails (25kg)">Pails (25kg)</option>
                         </select>
                     </div>
                     <div class="flex flex-col gap-1 w-24">
@@ -183,7 +184,12 @@
                         <input type="file" id="job-photo-2" accept="image/*" class="border border-gray-300 rounded p-1 text-xs bg-white w-full">
                     </div>
                 </div>
-
+				
+				<div class="flex items-center gap-2 mt-1 mb-2">
+                    <input type="checkbox" id="job-unloading" class="w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer">
+                    <label for="job-unloading" class="text-xs font-bold text-gray-700 cursor-pointer">Require Unloading Service?</label>
+                </div>
+				
                 <div class="flex flex-col gap-1">
                     <label class="text-xs font-bold text-gray-600">Remarks (Optional)</label>
                     <input type="text" id="job-remarks" placeholder="e.g. Handle with care" class="border border-gray-300 rounded p-2 text-sm">
