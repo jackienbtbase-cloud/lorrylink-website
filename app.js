@@ -133,7 +133,6 @@ const app = {
 
         // Ask Supabase to send a password reset email
         const { data, error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            // <-- UPDATE THIS LINE -->
             redirectTo: `${window.location.origin}/update-password.html` 
         });
 
@@ -249,7 +248,7 @@ const app = {
         const { data: jobs, error } = await supabaseClient
             .from('jobs')
             .select('*')
-            .neq('status', 'archived') // <-- ADD THIS LINE
+            .neq('status', 'archived') 
             .order('created_at', { ascending: false });
             
         if (error) return console.error(error);
@@ -315,9 +314,10 @@ const app = {
             quantity: parseInt(document.getElementById('job-qty').value),
             delivery_date: document.getElementById('job-date').value,
             offered_price: parseFloat(document.getElementById('job-price').value),
+			unloading_service: document.getElementById('job-unloading').checked,
             remarks: document.getElementById('job-remarks').value,
-            photo_1_url: photo1Url, // <-- NEW
-            photo_2_url: photo2Url  // <-- NEW
+            photo_1_url: photo1Url, 
+            photo_2_url: photo2Url  
         };
 
         const { error } = await supabaseClient.from('jobs').insert([newJob]);
@@ -501,10 +501,10 @@ const app = {
         const container = document.getElementById('bids-container');
         container.innerHTML = '<p class="text-sm text-gray-500">Loading bids...</p>';
 
-        // 1. Fetch the original job
+        // 1. Fetch the original job to get the NBT offered price, date, locations, items, AND po_number
         const { data: job, error: jobError } = await supabaseClient
             .from('jobs')
-            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url, source_maps_link, dest_maps_link, remarks, created_at')
+            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url, source_maps_link, dest_maps_link, remarks, created_at, unloading_service')
             .eq('id', jobId)
             .single();
 
@@ -533,8 +533,8 @@ const app = {
         const itemDesc = job.item_desc;
         const poNumber = job.po_number || 'N/A'; 
         const remarks = job.remarks || 'None'; 
-        
-        // 计算发布时间
+
+        // Calculate posted date
         const postedAt = job.created_at ? new Date(job.created_at).toLocaleString('en-MY', { 
             day: '2-digit', month: 'short', year: 'numeric', 
             hour: '2-digit', minute: '2-digit', hour12: true 
@@ -571,7 +571,6 @@ const app = {
                     <span class="text-right max-w-[70%] break-words"><i class="ri-sticky-note-line"></i> ${remarks}</span>
                 </div>
 
-                <!-- 重点：这里就是你在卡片里加上的 Posted On 时间 -->
                 <div class="flex justify-between text-xs font-semibold opacity-80 mt-0.5">
                     <span>Posted On:</span>
                     <span><i class="ri-time-line"></i> ${postedAt}</span>
@@ -825,6 +824,7 @@ const app = {
                     <hr class="mb-3 border-gray-100">
                     <div class="flex justify-between items-center">
                         <span class="text-sm font-semibold text-gray-600"><i class="ri-box-3-line"></i> ${job.quantity} ${job.item_desc}</span>
+						${job.unloading_service ? `<span class="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded mt-1 inline-block w-max"><i class="ri-hand-coin-line"></i> Unloading Required</span>` : ''}
                         <div class="text-right flex flex-col items-end">
                             <span class="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Your Price</span>
                             <span class="font-bold text-xl text-blue-700 leading-none">RM ${bid.proposed_price}</span>
@@ -863,6 +863,7 @@ const app = {
                             
                             <p class="text-xs text-gray-500 mt-1"><i class="ri-calendar-line text-gray-400"></i> Date: ${job.delivery_date}</p>
                             <p class="text-xs text-gray-500 mt-0.5"><i class="ri-box-3-line text-gray-400"></i> Items: ${job.quantity} ${job.item_desc}</p>
+							${job.unloading_service ? `<span class="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded mt-1 inline-block w-max"><i class="ri-hand-coin-line"></i> Unloading Required</span>` : ''}
 							<p class="text-[10px] font-semibold text-gray-400 mt-1"><i class="ri-time-line"></i> Posted: ${postedDate}</p>
                         </div>
                         <span class="${statusColor} text-[10px] font-bold px-2 py-1 rounded uppercase">${job.status || 'open'}</span>
@@ -909,10 +910,19 @@ const app = {
             return;
         }
 
-        const jobsHtml = jobs.map(job => `
+        const jobsHtml = jobs.map(job => {
+            const postedDate = job.created_at ? new Date(job.created_at).toLocaleString('en-MY', { 
+                day: '2-digit', month: 'short', year: 'numeric', 
+                hour: '2-digit', minute: '2-digit', hour12: true 
+            }) : 'Unknown';
+
+            return `
             <div class="bg-white p-4 rounded-lg shadow border-l-4 ${banned ? 'border-gray-400 opacity-75' : 'border-green-500'}">
                 <div class="flex justify-between items-start mb-2">
-                    <span class="text-xs font-bold text-gray-500">Delivery: ${job.delivery_date}</span>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-gray-500">Delivery: ${job.delivery_date}</span>
+                        <span class="text-[10px] font-semibold text-gray-400 mt-0.5"><i class="ri-time-line"></i> Posted: ${postedDate}</span>
+                    </div>
                     <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Open</span>
                 </div>
                 <div class="flex flex-col gap-1 text-sm mb-3">
@@ -934,7 +944,10 @@ const app = {
                 <p class="text-xs text-gray-500 mb-2">Remarks: ${job.remarks || 'None'}</p>
                 <hr class="mb-3 border-gray-100">
                 <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-600"><i class="ri-box-3-line"></i> ${job.quantity} ${job.item_desc}</span>
+                    <div class="flex flex-col">
+                        <span class="text-gray-600"><i class="ri-box-3-line"></i> ${job.quantity} ${job.item_desc}</span>
+                        ${job.unloading_service ? `<span class="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded mt-1 inline-block w-max"><i class="ri-hand-coin-line"></i> Unloading Required</span>` : ''}
+                    </div>
                     <span class="font-bold text-lg text-gray-800">RM ${job.offered_price}</span>
                 </div>
                 <div class="flex gap-2 mt-3">
@@ -945,7 +958,8 @@ const app = {
                     }
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         transporterJobsContainer.innerHTML = bannerHtml + jobsHtml;
     },
