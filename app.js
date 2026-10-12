@@ -807,13 +807,13 @@ const app = {
                         </div>
                         <span class="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded uppercase flex items-center gap-1"><i class="ri-truck-fill"></i> Assigned</span>
                     </div>
-                    <div class="flex flex-col gap-1 text-sm mb-3">
-                        <p class="font-bold text-gray-800 text-base flex items-center flex-wrap gap-1">
-						    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Source"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
-						    <i class="ri-arrow-right-line text-blue-400 mx-1"></i> 
-						    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Destination"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
-						</p>
-                    </div>
+                   <div class="flex flex-col gap-1 text-sm mb-3">
+					    <div class="font-bold text-gray-800 text-base flex flex-col items-start gap-1">
+					        <span class="flex items-center gap-1">${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Source"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}</span>
+					        <i class="ri-arrow-down-line text-blue-400 ml-2"></i> 
+					        <span class="flex items-center gap-1">${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Destination"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}</span>
+					    </div>
+					</div>
 					${(job.photo_1_url || job.photo_2_url) ? `
                     <div class="flex gap-2 mb-3">
                         ${job.photo_1_url ? `<a href="${job.photo_1_url}" target="_blank" class="block h-16 w-16 overflow-hidden rounded border border-gray-200 shadow-sm hover:opacity-80"><img src="${job.photo_1_url}" class="h-full w-full object-cover"></a>` : ''}
@@ -821,15 +821,18 @@ const app = {
                     </div>
                 ` : ''}
                     <p class="text-xs text-gray-500 mb-2 bg-gray-50 p-2 rounded border border-gray-100">Remarks: ${job.remarks || 'None'}</p>
-                    <hr class="mb-3 border-gray-100">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-semibold text-gray-600"><i class="ri-box-3-line"></i> ${job.quantity} ${job.item_desc}</span>
-						${job.unloading_service ? `<span class="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded mt-1 inline-block w-max"><i class="ri-hand-coin-line"></i> Unloading Required</span>` : ''}
-                        <div class="text-right flex flex-col items-end">
-                            <span class="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Your Price</span>
-                            <span class="font-bold text-xl text-blue-700 leading-none">RM ${bid.proposed_price}</span>
-                        </div>
-                    </div>
+                   <hr class="mb-3 border-gray-100">
+					<div class="flex justify-between items-center">
+					    <!-- 使用 flex-col 将 Jumbo Bags 和 Unloading Required 绑定在左侧上下排列 -->
+					    <div class="flex flex-col gap-1">
+					        <span class="text-sm font-semibold text-gray-600"><i class="ri-box-3-line"></i> ${job.quantity} ${job.item_desc}</span>${job.unloading_service ? `<span class="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded inline-block w-max"><i class="ri-hand-coin-line"></i> Unloading Required</span>` : ''}
+					    </div>
+					    
+					    <div class="text-right flex flex-col items-end">
+					        <span class="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Your Price</span>
+					        <span class="font-bold text-xl text-blue-700 leading-none">RM ${bid.proposed_price}</span>
+					    </div>
+					</div>
                 </div>
             `;
         }).join('');
