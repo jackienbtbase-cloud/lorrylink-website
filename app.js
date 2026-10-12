@@ -827,7 +827,10 @@ const app = {
         container.innerHTML = jobs.map(job => {
             const isAssigned = job.status === 'assigned';
             const statusColor = isAssigned ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
-
+			const postedDate = job.created_at ? new Date(job.created_at).toLocaleString('en-MY', { 
+			            day: '2-digit', month: 'short', year: 'numeric', 
+			            hour: '2-digit', minute: '2-digit', hour12: true 
+    	    }) : 'Unknown';
             return `
                 <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
                     <div class="flex justify-between items-start mb-2">
@@ -842,6 +845,7 @@ const app = {
                             
                             <p class="text-xs text-gray-500 mt-1"><i class="ri-calendar-line text-gray-400"></i> Date: ${job.delivery_date}</p>
                             <p class="text-xs text-gray-500 mt-0.5"><i class="ri-box-3-line text-gray-400"></i> Items: ${job.quantity} ${job.item_desc}</p>
+							<p class="text-[10px] font-semibold text-gray-400 mt-1"><i class="ri-time-line"></i> Posted: ${postedDate}</p>
                         </div>
                         <span class="${statusColor} text-[10px] font-bold px-2 py-1 rounded uppercase">${job.status || 'open'}</span>
                     </div>
