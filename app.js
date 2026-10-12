@@ -778,7 +778,7 @@ const app = {
         this.renderMyJobs(bids);
     },
 
-    renderMyJobs(bids) {
+   renderMyJobs(bids) {
         const container = document.getElementById('my-jobs-container');
         if (bids.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-sm">You have no assigned jobs yet.</p>';
@@ -792,10 +792,20 @@ const app = {
             // Check if the transporter proposed a new date, otherwise use the original
             const finalDate = bid.proposed_date || job.delivery_date;
 
+            // --- 新增：转换并格式化任务发布时间 ---
+            const postedDate = job.created_at ? new Date(job.created_at).toLocaleString('en-MY', { 
+                day: '2-digit', month: 'short', year: 'numeric', 
+                hour: '2-digit', minute: '2-digit', hour12: true 
+            }) : 'Unknown';
+
             return `
                 <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-gray-500">Agreed Delivery: ${finalDate}</span>
+                        <!-- 新增：用 flex-col 把 Agreed Delivery 和 Posted 放在一起 -->
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-gray-500">Agreed Delivery: ${finalDate}</span>
+                            <span class="text-[10px] font-semibold text-gray-400 mt-0.5"><i class="ri-time-line"></i> Posted: ${postedDate}</span>
+                        </div>
                         <span class="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded uppercase flex items-center gap-1"><i class="ri-truck-fill"></i> Assigned</span>
                     </div>
                     <div class="flex flex-col gap-1 text-sm mb-3">
