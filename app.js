@@ -501,10 +501,10 @@ const app = {
         const container = document.getElementById('bids-container');
         container.innerHTML = '<p class="text-sm text-gray-500">Loading bids...</p>';
 
-        // 1. Fetch the original job (确保 select 里面有 remarks)
+        // 1. Fetch the original job
         const { data: job, error: jobError } = await supabaseClient
             .from('jobs')
-            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url, source_maps_link, dest_maps_link, remarks')
+            .select('offered_price, delivery_date, source_loc, dest_loc, quantity, item_desc, po_number, photo_1_url, photo_2_url, source_maps_link, dest_maps_link, remarks, created_at')
             .eq('id', jobId)
             .single();
 
@@ -525,7 +525,6 @@ const app = {
             return;
         }
 
-        // --- 核心修改：不管有没有 bid，先生成任务详情的 Banner ---
         const originalPrice = job.offered_price;
         const originalDate = job.delivery_date; 
         const sourceLoc = job.source_loc;
@@ -533,7 +532,13 @@ const app = {
         const quantity = job.quantity;
         const itemDesc = job.item_desc;
         const poNumber = job.po_number || 'N/A'; 
-        const remarks = job.remarks || 'None'; // <-- 确保这里拿到了 remarks
+        const remarks = job.remarks || 'None'; 
+        
+        // 计算发布时间
+        const postedAt = job.created_at ? new Date(job.created_at).toLocaleString('en-MY', { 
+            day: '2-digit', month: 'short', year: 'numeric', 
+            hour: '2-digit', minute: '2-digit', hour12: true 
+        }) : 'Unknown time';
         
         let html = `
             <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 flex flex-col gap-2 shadow-sm">
@@ -561,10 +566,15 @@ const app = {
                     <span><i class="ri-box-3-line"></i> ${quantity} ${itemDesc}</span>
                 </div>
                 
-                <!-- 新增：显示 Remarks -->
                 <div class="flex justify-between text-xs font-semibold opacity-80 mt-0.5">
                     <span>Remarks:</span>
                     <span class="text-right max-w-[70%] break-words"><i class="ri-sticky-note-line"></i> ${remarks}</span>
+                </div>
+
+                <!-- 重点：这里就是你在卡片里加上的 Posted On 时间 -->
+                <div class="flex justify-between text-xs font-semibold opacity-80 mt-0.5">
+                    <span>Posted On:</span>
+                    <span><i class="ri-time-line"></i> ${postedAt}</span>
                 </div>
 
                 ${(job.photo_1_url || job.photo_2_url) ? `
@@ -576,14 +586,12 @@ const app = {
             </div>
         `;
 
-        // 如果没人竞标，显示详情卡片 + 提示语后直接结束
         if (bids.length === 0) {
             html += '<p class="text-gray-500 text-sm mt-4 text-center">No bids have been submitted for this job yet.</p>';
             container.innerHTML = html;
             return;
         }
 
-        // --- 有竞标数据时的渲染逻辑 ---
         bids.sort((a, b) => {
             if (a.status === 'accepted' && b.status !== 'accepted') return -1;
             if (b.status === 'accepted' && a.status !== 'accepted') return 1;
