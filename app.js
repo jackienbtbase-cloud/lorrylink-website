@@ -540,10 +540,10 @@ const app = {
                 <div class="flex justify-between items-start border-b border-blue-200 pb-2">
                     <div class="flex items-center flex-wrap gap-1 font-bold text-sm">
                         <span>${sourceLoc}</span>
-                        ${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="查看出发地"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
+                        ${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="View Source"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
                         <i class="ri-arrow-right-line text-blue-400 mx-1"></i> 
                         <span>${destLoc}</span>
-                        ${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="查看目的地"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
+                        ${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="View Destination"><i class="ri-map-pin-user-fill text-lg align-middle"></i></a>` : ''}
                     </div>
                     <span class="text-[10px] font-bold bg-blue-200 text-blue-900 px-2 py-0.5 rounded shadow-sm">PO: ${poNumber}</span>
                 </div>
@@ -792,9 +792,9 @@ const app = {
                     </div>
                     <div class="flex flex-col gap-1 text-sm mb-3">
                         <p class="font-bold text-gray-800 text-base flex items-center flex-wrap gap-1">
-						    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看出发地"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
+						    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Source"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
 						    <i class="ri-arrow-right-line text-blue-400 mx-1"></i> 
-						    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看目的地"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
+						    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Destination"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
 						</p>
                     </div>
 					${(job.photo_1_url || job.photo_2_url) ? `
@@ -833,9 +833,9 @@ const app = {
                     <div class="flex justify-between items-start mb-2">
                         <div>
                            <h3 class="font-bold text-gray-800 flex items-center flex-wrap gap-1">
-							    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看出发地"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
+							    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Source"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
 							    <i class="ri-arrow-right-line text-blue-500 mx-1"></i> 
-							    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="查看目的地"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
+							    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Destination"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
 							</h3>
                             <!-- NEW: Added PO Number -->
                             <p class="text-xs font-bold text-blue-700 mt-1"><i class="ri-file-list-3-line"></i> PO: ${job.po_number || 'N/A'}</p>
