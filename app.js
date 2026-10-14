@@ -758,9 +758,9 @@ const app = {
 		        .eq('job_id', jobId)
 		        .eq('status', 'accepted');
 		
-		    alert("✅ Job assignment undone. It is now open for bids again.");
+		    alert("Job assignment undone. It is now open for bids again.");
 		    this.fetchJobsForNBT(); // Refresh the dashboard
-		}，
+		},
     // --- RENDER HTML FUNCTIONS ---
 	async fetchMyJobs() {
         const container = document.getElementById('my-jobs-container');
