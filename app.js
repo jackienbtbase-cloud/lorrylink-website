@@ -856,10 +856,10 @@ const app = {
                 <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                           <h3 class="font-bold text-gray-800 flex items-center flex-wrap gap-1">
-							    ${job.source_loc}${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Source"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
-							    <i class="ri-arrow-right-line text-blue-500 mx-1"></i> 
-							    ${job.dest_loc}${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700" title="View Destination"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
+                          <h3 class="font-bold text-gray-800 flex items-center flex-wrap gap-1">
+							    <span>${job.source_loc}</span>${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="View Source"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
+							    <i class="ri-arrow-right-line text-blue-600 font-bold mx-1.5 text-base"></i> 
+							    <span>${job.dest_loc}</span>${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 mx-0.5" title="View Destination"><i class="ri-map-pin-user-fill text-[18px]"></i></a>` : ''}
 							</h3>
                             <!-- NEW: Added PO Number -->
                             <p class="text-xs font-bold text-blue-700 mt-1"><i class="ri-file-list-3-line"></i> PO: ${job.po_number || 'N/A'}</p>
