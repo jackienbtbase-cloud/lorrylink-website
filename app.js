@@ -933,6 +933,9 @@ const app = {
                         <i class="ri-map-pin-line text-gray-400"></i> ${job.source_loc}
                         ${job.source_maps_link ? `<a href="${job.source_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-2" title="View on Maps"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
                     </p>
+					<div class="text-blue-500 ml-1 py-1">
+				        <i class="ri-arrow-down-line font-bold text-lg"></i>
+				    </div>
                     <p class="font-semibold flex items-center gap-1">
                         <i class="ri-map-pin-time-line text-gray-400"></i> ${job.dest_loc}
                         ${job.dest_maps_link ? `<a href="${job.dest_maps_link}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-2" title="View on Maps"><i class="ri-map-pin-user-fill text-lg"></i></a>` : ''}
