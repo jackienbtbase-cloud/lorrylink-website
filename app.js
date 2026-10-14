@@ -727,34 +727,40 @@ const app = {
         }
     },
 
-    async unassignJob(jobId) {
-        if (!confirm("Are you sure you want to undo this assignment? The job will be returned to the open market.")) return;
-
-        // 1. Revert job status back to 'open' and clear the accepted price
-        const { error: jobError } = await supabaseClient
-            .from('jobs')
-            .update({ 
-                status: 'open',
-                accepted_price: null // <-- NEW: Clears the price so it's fresh for new bids
-            })
-            .eq('id', jobId);
-
-        if (jobError) {
-            alert("Error unassigning job: " + jobError.message);
-            return;
-        }
-
-        // 2. Revert the accepted bid back to 'submitted' so the transporter isn't permanently locked in
-        await supabaseClient
-            .from('bids')
-            .update({ status: 'submitted' })
-            .eq('job_id', jobId)
-            .eq('status', 'accepted');
-
-        alert("Job assignment undone. It is now open for bids again.");
-        this.fetchJobsForNBT(); // Refresh the dashboard
-    },
-
+		    async unassignJob(jobId) {
+		    if (!confirm("Are you sure you want to undo this assignment? The job will be returned to the open market.")) return;
+		
+		    // 1. Add .select() to force the database to return the updated rows
+		    const { data: updatedJob, error: jobError } = await supabaseClient
+		        .from('jobs')
+		        .update({ 
+		            status: 'open',
+		            accepted_price: null 
+		        })
+		        .eq('id', jobId)
+		        .select(); // <-- Critical: Forces returning the result
+		
+		    if (jobError) {
+		        alert("Error unassigning job: " + jobError.message);
+		        return;
+		    }
+		
+		    // 2. Catch "silent fails" caused by RLS where 0 rows are updated
+		    if (!updatedJob || updatedJob.length === 0) {
+		        alert("❌ Undo Failed: The database blocked the update.\nPossible reasons:\n1. Supabase RLS (Row Level Security) policies restrict your permission to update this job.\n2. The 'accepted_price' column is missing in your 'jobs' table, or it is set to 'Not Null'.");
+		        return;
+		    }
+		
+		    // 3. Revert the accepted bid back to 'submitted'
+		    await supabaseClient
+		        .from('bids')
+		        .update({ status: 'submitted' })
+		        .eq('job_id', jobId)
+		        .eq('status', 'accepted');
+		
+		    alert("✅ Job assignment undone. It is now open for bids again.");
+		    this.fetchJobsForNBT(); // Refresh the dashboard
+		}
     // --- RENDER HTML FUNCTIONS ---
 	async fetchMyJobs() {
         const container = document.getElementById('my-jobs-container');
